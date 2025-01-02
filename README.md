@@ -57,6 +57,37 @@ git clone --depth=1 https://github.com/bluez/bluez.git
 gcc -o bdaddr ~/bluez/tools/bdaddr.c ~/bluez/src/oui.c -I ~/bluez -lbluetooth
 sudo cp bdaddr /usr/local/bin/
 ```
+
+```bash
+# Install dependencies
+sudo apt update
+# install dependencies from apt
+
+sudo apt install -y bluez-tools bluez-hcidump libbluetooth-dev git gcc python3-pip python3-setuptools python3-pydbus
+
+install pybluez from source
+
+git clone https://github.com/pybluez/pybluez.git
+cd pybluez
+sudo python3 setup.py install
+
+Next, we need to build bdaddr from source. bdaddr enables us to query or set the local Bluetooth device address.
+
+cd ../
+git clone — depth=1 https://github.com/bluez/bluez.git
+gcc -o bdaddr ~/bluez/tools/bdaddr.c ~/bluez/src/oui.c -I ~/bluez -lbluetooth
+sudo cp bdaddr /usr/local/bin/
+
+Install Blueduckky
+
+git clone https://github.com/pentestfunctions/BlueDucky.git
+cd BlueDucky
+
+To start the bluetooth in linux hit the below command
+
+sudo hciconfig hci0 up
+```
+
 ### Setup Instructions for Arch-based 
 
 ```bash
