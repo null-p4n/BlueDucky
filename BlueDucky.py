@@ -58,7 +58,6 @@ def setup_logging():
     # Set the logging level to INFO to filter out DEBUG messages
     logging.basicConfig(level=logging.INFO, handlers=[handler])
 
-
 class ConnectionFailureException(Exception):
     pass
 
@@ -607,63 +606,94 @@ def terminate_child_processes():
     
 
 def setup_bluetooth(target_address, adapter_id):
-    restart_bluetooth_daemon()
+    # Initialize bluetooth with proper sequence
+    commands = [
+        ["sudo", "rfkill", "unblock", "bluetooth"],
+        ["sudo", "hciconfig", adapter_id, "up"],
+        ["sudo", "systemctl", "restart", "bluetooth"],
+        ["sleep", "2"],  # Add delay to ensure service is ready
+        ["bluetoothctl", "power", "on"],
+        ["bluetoothctl", "agent", "NoInputNoOutput"],  # Set specific agent capability
+        ["sleep", "1"],  # Add delay for agent registration
+        ["bluetoothctl", "default-agent"],
+        ["bluetoothctl", "discoverable", "on"]
+    ]
+
+    for cmd in commands:
+        try:
+            if cmd[0] == "sleep":
+                time.sleep(float(cmd[1]))
+                continue
+
+            if "agent" in cmd[1]:
+                # Special handling for agent commands
+                process = subprocess.run(cmd, capture_output=True, text=True)
+                if process.returncode != 0:
+                    # Retry agent registration
+                    subprocess.run(["bluetoothctl", "agent", "off"], check=False)
+                    time.sleep(1)
+                    subprocess.run(["bluetoothctl", "agent", "NoInputNoOutput"], check=True)
+                    time.sleep(1)
+            else:
+                subprocess.run(cmd, check=True)
+
+            time.sleep(0.5)  # Add delay between commands
+
+        except subprocess.CalledProcessError as e:
+            if "default-agent" in cmd:
+                # Retry agent registration sequence
+                subprocess.run(["bluetoothctl", "agent", "off"], check=False)
+                time.sleep(1)
+                subprocess.run(["bluetoothctl", "agent", "NoInputNoOutput"], check=True)
+                time.sleep(1)
+                subprocess.run(cmd, check=True)
+            else:
+                raise ConnectionFailureException(f"Bluetooth setup failed at: {cmd}")
+
+    # Continue with profile registration
     profile_proc = Process(target=register_hid_profile, args=(adapter_id, target_address))
     profile_proc.start()
     child_processes.append(profile_proc)
+
     adapter = Adapter(adapter_id)
     adapter.set_property("name", "Robot POC")
-    adapter.set_property("class", 0x002540)
+    adapter.set_property("class", "0x002540")
     adapter.power(True)
+
     return adapter
 
-def initialize_pairing(agent_iface, target_address):
-    try:
-        with PairingAgent(agent_iface, target_address) as agent:
-            log.debug("Pairing agent initialized")
-    except Exception as e:
-        log.error(f"Failed to initialize pairing agent: {e}")
-        raise ConnectionFailureException("Pairing agent initialization failed")
+def ensure_bluetooth_ready(adapter_id):
+    commands = [
+        f"bluetoothctl -- power on",
+        f"bluetoothctl -- agent on",
+        f"bluetoothctl -- default-agent"
+    ]
 
-def establish_connections(connection_manager):
-    if not connection_manager.connect_all():
-        raise ConnectionFailureException("Failed to connect to all required ports")
+    for cmd in commands:
+        try:
+            subprocess.run(cmd, shell=True, check=True)
+            time.sleep(0.2)
+        except subprocess.CalledProcessError:
+            pass
 
 def setup_and_connect(connection_manager, target_address, adapter_id):
-    connection_manager.create_connection(1)   # SDP
-    connection_manager.create_connection(17)  # HID Control
-    connection_manager.create_connection(19)  # HID Interrupt
-    initialize_pairing(adapter_id, target_address)
-    establish_connections(connection_manager)
-    return connection_manager.clients[19]
+    # Create L2CAP connections for required services
+    connection_manager.create_connection(1)    # SDP
+    connection_manager.create_connection(17)   # HID Control
+    connection_manager.create_connection(19)   # HID Interrupt
 
-def troubleshoot_bluetooth():
-    # Added this function to troubleshoot common issues before access to the application is granted
-
-    blue = "\033[0m"
-    red = "\033[91m"
-    reset = "\033[0m"
-    # Check if bluetoothctl is available
+    # Initialize pairing
     try:
-        subprocess.run(['bluetoothctl', '--version'], check=True, stdout=subprocess.PIPE)
-    except subprocess.CalledProcessError:
-        print("{reset}[{red}!{reset}] {red}CRITICAL{reset}: {blue}bluetoothctl {reset}is not installed or not working properly.")
-        return False
+        with PairingAgent(adapter_id, target_address) as agent:
+            # Establish connections
+            if not connection_manager.connect_all():
+                raise ConnectionFailureException("Failed to connect to all required ports")
 
-    # Check for Bluetooth adapters
-    result = subprocess.run(['bluetoothctl', 'list'], capture_output=True, text=True)
-    if "Controller" not in result.stdout:
-        print("{reset}[{red}!{reset}] {red}CRITICAL{reset}: No {blue}Bluetooth adapters{reset} have been detected.")
-        return False
+            # Return the HID Interrupt client for sending keystrokes
+            return connection_manager.clients[19]
+    except Exception as e:
+        raise ConnectionFailureException(f"Failed to initialize pairing agent: {e}")
 
-    # List devices to see if any are connected
-    result = subprocess.run(['bluetoothctl', 'devices'], capture_output=True, text=True)
-    if "Device" not in result.stdout:
-        print("{reset}[{red}!{reset}] {red}CRITICAL{reset}: No Compatible {blue}Bluetooth devices{reset} are connected.")
-        return False
-
-    # if no issues are found then continue
-    return True
 
 # Main function
 def main():
@@ -746,6 +776,39 @@ def main():
             command = f'echo -e "remove {target_address}\n" | bluetoothctl'
             subprocess.run(command, shell=True)
             print(f"{blue}Successfully Removed device{reset}: {blue}{target_address}{reset}")
+
+def troubleshoot_bluetooth():
+    # Added this function to troubleshoot common issues
+    blue = "\033[0m"
+    red = "\033[91m"
+    reset = "\033[0m"
+
+    # Check if bluetoothctl is available
+    try:
+        subprocess.run(['bluetoothctl', '--version'], check=True, stdout=subprocess.PIPE)
+    except subprocess.CalledProcessError:
+        print(f"{reset}[{red}!{reset}] {red}CRITICAL{reset}: {blue}bluetoothctl {reset}is not installed or not working properly.")
+        return False
+
+    # Check for Bluetooth adapters
+    result = subprocess.run(['bluetoothctl', 'list'], capture_output=True, text=True)
+    if "Controller" not in result.stdout:
+        print(f"{reset}[{red}!{reset}] {red}CRITICAL{reset}: No {blue}Bluetooth adapters{reset} have been detected.")
+        return False
+
+    return True
+
+if __name__ == "__main__":
+    setup_logging()
+    log = logging.getLogger(__name__)
+    try:
+        if troubleshoot_bluetooth():
+            main()
+        else:
+            sys.exit(0)
+    finally:
+        terminate_child_processes()
+
 
 if __name__ == "__main__":
     setup_logging()
