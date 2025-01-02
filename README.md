@@ -54,7 +54,7 @@ Installation
 
 bash
 
-`git clone https://github.com/null-p4n/BlueDucky cd BlueDucky pip3 install -r requirements.txt `
+`git clone https://github.com/null-p4n/BlueDucky && cd BlueDucky && pip3 install -r requirements.txt `
 
 Usage
 -----
