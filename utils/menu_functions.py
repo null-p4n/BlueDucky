@@ -2,7 +2,7 @@ import os, bluetooth, re, subprocess, time, curses
 import logging as log
 
 ##########################
-# UI Redesign by Lamento #
+# UI Redesign by nullpwn #
 ##########################
 
 def get_target_address():
