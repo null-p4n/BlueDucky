@@ -115,7 +115,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 Acknowledgments
 ---------------
 
-Based on the original keystroke-injection-android-linux project with significant enhancements and new features.
+Based on the original https://github.com/marcnewlin/hi_my_name_is_keyboard and https://github.com/pentestfunctions/BlueDucky/ project with significant enhancements and new features.
 
 Disclaimer
 ----------
