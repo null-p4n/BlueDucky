@@ -1,8 +1,4 @@
-# BlueDucky Ver 2.1 (Android) 🦆
-
-1. [saad0x1's GitHub](https://github.com/saad0x1)
-2. [spicydll's GitHub](https://github.com/spicydll)
-3. [lamentomori's GitHub](https://github.com/lamentomori)
+# BlueDucky Ver 2.2
 
 <p align="center">
   <img src="./images/duckmenu.png">
@@ -12,20 +8,119 @@
 
 🔓 Unauthenticated Peering Leading to Code Execution (Using HID Keyboard)
 
-[This is an implementation of the CVE discovered by marcnewlin](https://github.com/marcnewlin/hi_my_name_is_keyboard)
-
 <p align="center">
   <img src="./images/BlueDucky.gif">
 </p>
 
-## Introduction 📢
-BlueDucky is a powerful tool for exploiting a vulnerability in Bluetooth devices. By running this script, you can:
+BlueDucky v2.2
+--------------
 
-1. 📡 Load saved Bluetooth devices that are no longer visible but have Bluetooth still enabled.
-2. 📂 Automatically save any devices you scan.
-3. 💌 Send messages via ducky script format to interact with devices.
+A powerful Bluetooth HID attack tool that emulates keyboard input through Bluetooth connections, based on the original keystroke-injection-android-linux project.
 
-I've successfully run this on a Raspberry Pi 4 using the default Bluetooth module. It works against various phones, with an interesting exception for a New Zealand brand, Vodafone.
+Features
+--------
+
+Core Functionality
+
+-   Bluetooth HID keyboard emulation
+-   DuckyScript payload support
+-   Interactive device selection
+-   Automatic reconnection handling
+-   Color-coded logging system
+
+Technical Features
+
+-   L2CAP connection management (SDP, HID Control, HID Interrupt)
+-   SSP (Secure Simple Pairing) support
+-   NoInputNoOutput pairing agent
+-   Comprehensive error handling
+-   Automatic device cleanup
+
+Requirements
+------------
+
+-   Python 3.x
+-   Linux-based system
+-   BlueZ tools
+-   Root privileges
+-   Required Python packages:
+
+    -   pydbus
+    -   bluetooth
+    -   argparse
+
+Installation
+------------
+
+bash
+
+`git clone https://github.com/null-p4n/BlueDucky cd BlueDucky pip3 install -r requirements.txt `
+
+Usage
+-----
+
+bash
+
+`sudo python3 BlueDucky.py --adapter hci0 `
+
+Payload Structure
+-----------------
+
+Payloads are stored in the `payloads/` directory and support the following commands:Basic Commands
+
+-   STRING: Types the specified text
+-   DELAY: Waits specified milliseconds
+-   TAB: Sends Tab key
+-   ENTER: Sends Enter key
+
+Special Commands
+
+-   PRIVATE_BROWSER: Opens private browsing
+-   VOLUME_UP: Increases system volume
+-   Modifier combinations (CTRL, ALT, SHIFT, GUI)
+
+Key Improvements in v2.2
+------------------------
+
+Core Changes
+
+-   Enhanced Bluetooth initialization sequence
+-   Improved agent registration process
+-   Better device pairing management
+-   Robust error handling
+-   Automatic device cleanup
+
+New Features
+
+-   Interactive payload selection
+-   Enhanced logging system
+-   Better device targeting
+-   Improved character mapping
+-   Support for special key combinations
+
+Contributing
+------------
+
+1.  Fork the repository
+2.  Create your feature branch
+3.  Commit your changes
+4.  Push to the branch
+5.  Create a Pull Request
+
+License
+-------
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+Acknowledgments
+---------------
+
+Based on the original keystroke-injection-android-linux project with significant enhancements and new features.
+
+Disclaimer
+----------
+
+This tool is for educational purposes only. Users are responsible for obtaining proper authorization before testing on any devices.
 
 ## Installation and Usage 🛠️
 
@@ -121,27 +216,6 @@ alternatively,
 pip3 install -r requirements.txt
 ```
 
-## Operational Steps 🕹️
-1. On running, it prompts for the target MAC address.
-2. Pressing nothing triggers an automatic scan for devices.
-3. Devices previously found are stored in known_devices.txt.
-4. If known_devices.txt exists, it checks this file before scanning.
-5. Executes using payload.txt file.
-6. Successful execution will result in automatic connection and script running.
-
-## Duckyscript 💻
-🚧 Work in Progress:
-- Suggest me ideas
-
-## Version 2.1 🐛
-- Updated UI
-- Improved User Experience
-- Bluetooth Debugger; Checks your bluetooth adapters, and installed dependancies before allowing access to the application, this is to prevent devices that are not supported.
-- Please Note: Numerous Changes have been made,please reference the commit history for specific changes.
-  
-## What's Planned for the Next Release?
-- Integrated DuckyScript Console for attacks that want to maintain persistance, after a payload has been ran
-- Suggest What Should be added next! Join https://discord.gg/HackNexus
 
 #### 📝 Example payload.txt:
 ```bash
@@ -169,7 +243,6 @@ ENTER
 DELAY 300
 ```
 
-## Enjoy experimenting with BlueDucky! 🌟
 
 
 
