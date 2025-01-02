@@ -8,14 +8,11 @@
 
 🔓 Unauthenticated Peering Leading to Code Execution (Using HID Keyboard)
 
-<p align="center">
-  <img src="./images/BlueDucky.gif">
-</p>
 
 BlueDucky v2.2
 --------------
 
-A powerful Bluetooth HID attack tool that emulates keyboard input through Bluetooth connections, based on the original keystroke-injection-android-linux project.
+A powerful Bluetooth HID attack tool that emulates keyboard input through Bluetooth connections, based on the original hi_my_name_is_keyboard // BlueDucky projects.
 
 Features
 --------
